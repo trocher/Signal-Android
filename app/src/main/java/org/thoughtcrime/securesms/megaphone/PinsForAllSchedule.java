@@ -44,27 +44,7 @@ class PinsForAllSchedule implements MegaphoneSchedule {
   }
 
   private static boolean isEnabled() {
-    if (SignalStore.kbsValues().hasOptedOut()) {
-      return false;
-    }
-
-    if (SignalStore.kbsValues().hasPin()) {
-      return false;
-    }
-
-    if (pinCreationFailedDuringRegistration()) {
-      return true;
-    }
-
-    if (newlyRegisteredRegistrationLockV1User()) {
-      return true;
-    }
-
-    if (SignalStore.registrationValues().pinWasRequiredAtRegistration()) {
-      return false;
-    }
-
-    return true;
+    return false;
   }
 
   private static boolean pinCreationFailedDuringRegistration() {
