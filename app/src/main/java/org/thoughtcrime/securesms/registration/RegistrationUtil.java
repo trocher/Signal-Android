@@ -26,8 +26,8 @@ public final class RegistrationUtil {
   public static void maybeMarkRegistrationComplete(@NonNull Context context) {
     if (!SignalStore.registrationValues().isRegistrationComplete() &&
         TextSecurePreferences.isPushRegistered(context)            &&
-        !Recipient.self().getProfileName().isEmpty()               &&
-        (SignalStore.kbsValues().hasPin() || SignalStore.kbsValues().hasOptedOut()))
+        !Recipient.self().getProfileName().isEmpty())//               &&
+        //(SignalStore.kbsValues().hasPin() || SignalStore.kbsValues().hasOptedOut()))
     {
       Log.i(TAG, "Marking registration completed.", new Throwable());
       SignalStore.registrationValues().setRegistrationComplete();
