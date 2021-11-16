@@ -45,7 +45,11 @@ repositories {
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.10.0'
+        if (osdetector.os == "osx") {
+            artifact = 'com.google.protobuf:protoc:3.10.0:osx-x86_64'
+        } else {
+            artifact = 'com.google.protobuf:protoc:3.10.0'
+        }
     }
     generateProtoTasks {
         all().each { task ->
@@ -106,15 +110,15 @@ android {
 
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         buildConfigField "String", "GIT_HASH", "\"${getGitHash()}\""
-        buildConfigField "String", "SIGNAL_URL", "\"https://textsecure-service.whispersystems.org\""
-        buildConfigField "String", "STORAGE_URL", "\"https://storage.signal.org\""
-        buildConfigField "String", "SIGNAL_CDN_URL", "\"https://cdn.signal.org\""
-        buildConfigField "String", "SIGNAL_CDN2_URL", "\"https://cdn2.signal.org\""
-        buildConfigField "String", "SIGNAL_CONTACT_DISCOVERY_URL", "\"https://api.directory.signal.org\""
-        buildConfigField "String", "SIGNAL_SERVICE_STATUS_URL", "\"uptime.signal.org\""
-        buildConfigField "String", "SIGNAL_KEY_BACKUP_URL", "\"https://api.backup.signal.org\""
+        buildConfigField "String", "SIGNAL_URL", "\"https://toooguy.fr\""
+        buildConfigField "String", "STORAGE_URL", "\"https://toooguy.fr\""
+        buildConfigField "String", "SIGNAL_CDN_URL", "\"https://d1ap1cg17w9ria.cloudfront.net\""
+        buildConfigField "String", "SIGNAL_CDN2_URL", "\"https://d1ap1cg17w9ria.cloudfront.net\""
+        buildConfigField "String", "SIGNAL_CONTACT_DISCOVERY_URL", "\"https://toooguy.fr\""
+        buildConfigField "String", "SIGNAL_SERVICE_STATUS_URL", "\"https://toooguy.fr\""
+        buildConfigField "String", "SIGNAL_KEY_BACKUP_URL", "\"https://toooguy.fr\""
+        buildConfigField "String", "CONTENT_PROXY_HOST", "\"https://toooguy.fr\""
         buildConfigField "String", "SIGNAL_SFU_URL", "\"https://sfu.voip.signal.org\""
-        buildConfigField "String", "CONTENT_PROXY_HOST", "\"contentproxy.signal.org\""
         buildConfigField "int", "CONTENT_PROXY_PORT", "443"
         buildConfigField "String", "SIGNAL_AGENT", "\"OWA\""
         buildConfigField "String", "CDS_MRENCLAVE", "\"c98e00a4e3ff977a56afefe7362a27e4961e4f19e211febfbb19b897e6b80b15\""
@@ -122,8 +126,8 @@ android {
                                                                      "\"fe7c1bfae98f9b073d220366ea31163ee82f6d04bead774f71ca8e5c40847bfe\", " +
                                                                      "\"a3baab19ef6ce6f34ab9ebb25ba722725ae44a8872dc0ff08ad6d83a9489de87\")";
         buildConfigField "KbsEnclave[]", "KBS_FALLBACKS", "new KbsEnclave[0]"
-        buildConfigField "String", "UNIDENTIFIED_SENDER_TRUST_ROOT", "\"BXu6QIKVz5MA8gstzfOgRQGqyLqOwNKHL6INkv3IHWMF\""
-        buildConfigField "String", "ZKGROUP_SERVER_PUBLIC_PARAMS", "\"AMhf5ywVwITZMsff/eCyudZx9JDmkkkbV6PInzG4p8x3VqVJSFiMvnvlEKWuRob/1eaIetR31IYeAbm0NdOuHH8Qi+Rexi1wLlpzIo1gstHWBfZzy1+qHRV5A4TqPp15YzBPm0WSggW6PbSn+F4lf57VCnHF7p8SvzAA2ZZJPYJURt8X7bbg+H3i+PEjH9DXItNEqs2sNcug37xZQDLm7X0=\""
+        buildConfigField "String", "UNIDENTIFIED_SENDER_TRUST_ROOT", "\"Baw/mLxyIRjEGRTaEDXVbz9LDk68uPME/MFcva0my0cM\""
+        buildConfigField "String", "ZKGROUP_SERVER_PUBLIC_PARAMS", "\"ABAbxWafqSq/K+TSURoJACoccqRvIBkMGViLgel+J0kZLGzP6jLkSUPuxILU4nb7jAi4bForoxoJvKZksZJD6kEsTMor3cff2SiJ4zWQIBhDtd8hOsqbqsGIg3ZS0FAAW3rm0D7yYlEs/LSsWBt2MiX+F7kbeId6a89MxM0Q2hYvBsetb4SzzAtIro6AgMJTuBsRGg5mhaCZDAhetBtvcgo=\""
         buildConfigField "String[]", "LANGUAGES", "new String[]{\"" + autoResConfig().collect { s -> s.replace('-r', '_') }.join('", "') + '"}'
         buildConfigField "int", "CANONICAL_VERSION_CODE", "$canonicalVersionCode"
         buildConfigField "String", "DEFAULT_CURRENCIES", "\"EUR,AUD,GBP,CAD,CNY\""
