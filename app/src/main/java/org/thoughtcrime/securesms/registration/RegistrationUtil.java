@@ -21,7 +21,7 @@ public final class RegistrationUtil {
    * requirements are met.
    */
   public static void markRegistrationPossiblyComplete() {
-    if (!SignalStore.registrationValues().isRegistrationComplete() && SignalStore.kbsValues().hasPin() && !Recipient.self().getProfileName().isEmpty()) {
+    if (!SignalStore.registrationValues().isRegistrationComplete() /*&& SignalStore.kbsValues().hasPin() */&& !Recipient.self().getProfileName().isEmpty()) {
       Log.i(TAG, "Marking registration completed.", new Throwable());
       SignalStore.registrationValues().setRegistrationComplete();
       ApplicationDependencies.getJobManager().startChain(new StorageSyncJob())
