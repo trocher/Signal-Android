@@ -65,10 +65,12 @@ public class NewConversationActivity extends ContactSelectionActivity
   public boolean onBeforeContactSelected(Optional<RecipientId> recipientId, String number) {
     if (recipientId.isPresent()) {
       launch(Recipient.resolved(recipientId.get()));
+      Log.i(TAG, "[onContactSelected] Not doing a contact refres ;).");
+
     } else {
       Log.i(TAG, "[onContactSelected] Maybe creating a new recipient.");
 
-      if (TextSecurePreferences.isPushRegistered(this) && NetworkConstraint.isMet(this)) {
+      if (false) {
         Log.i(TAG, "[onContactSelected] Doing contact refresh.");
 
         AlertDialog progress = SimpleProgressDialog.show(this);
