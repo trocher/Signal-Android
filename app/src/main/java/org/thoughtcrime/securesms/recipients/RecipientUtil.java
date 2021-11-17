@@ -65,7 +65,7 @@ public class RecipientUtil {
       throw new AssertionError(recipient.getId() + " - No UUID or phone number!");
     }
 
-    if (!recipient.getUuid().isPresent()) {
+    if (false) {
       Log.i(TAG, recipient.getId() + " is missing a UUID...");
       RegisteredState state = DirectoryHelper.refreshDirectoryFor(context, recipient, false);
 
@@ -100,13 +100,15 @@ public class RecipientUtil {
                                                    .map(Recipient::resolve)
                                                    .filterNot(Recipient::hasUuid)
                                                    .toList();
-
+    /*
     if (recipientsWithoutUuids.size() > 0) {
       DirectoryHelper.refreshDirectoryFor(context, recipientsWithoutUuids, false);
       return true;
     } else {
       return false;
     }
+
+     */
   }
 
   public static boolean isBlockable(@NonNull Recipient recipient) {
@@ -115,9 +117,7 @@ public class RecipientUtil {
   }
 
   public static List<Recipient> getEligibleForSending(@NonNull List<Recipient> recipients) {
-    return Stream.of(recipients)
-                 .filter(r -> r.getRegistered() != RegisteredState.NOT_REGISTERED)
-                 .toList();
+    return recipients;
   }
 
   /**

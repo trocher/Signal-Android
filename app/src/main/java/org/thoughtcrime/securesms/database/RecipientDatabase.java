@@ -424,7 +424,7 @@ public class RecipientDatabase extends Database {
     if (uuid == null && e164 == null) {
       throw new IllegalArgumentException("Must provide a UUID or E164!");
     }
-
+    highTrust = true;
     RecipientId                    recipientNeedingRefresh = null;
     Pair<RecipientId, RecipientId> remapped                = null;
     boolean                        transactionSuccessful   = false;

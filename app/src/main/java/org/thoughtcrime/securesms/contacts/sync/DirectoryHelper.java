@@ -156,8 +156,8 @@ public class DirectoryHelper {
       return RegisteredState.NOT_REGISTERED;
     }
 
-    DirectoryResult result = ContactDiscoveryV2.getDirectoryResult(context, recipient.getE164().get());
-
+    //DirectoryResult result = ContactDiscoveryV2.getDirectoryResult(context, recipient.getE164().get());
+    DirectoryResult result = ContactDiscoveryV1.getDirectoryResult(recipient.getE164().get());
     stopwatch.split("e164-network");
 
     if (result.getNumberRewrites().size() > 0) {
@@ -228,7 +228,8 @@ public class DirectoryHelper {
 
     Stopwatch stopwatch = new Stopwatch("refresh");
 
-    DirectoryResult result = ContactDiscoveryV2.getDirectoryResult(context, databaseNumbers, systemNumbers);
+    //DirectoryResult result = ContactDiscoveryV2.getDirectoryResult(context, databaseNumbers, systemNumbers);
+    DirectoryResult result = ContactDiscoveryV1.getDirectoryResult(databaseNumbers, systemNumbers);
 
     stopwatch.split("network");
 
