@@ -109,6 +109,7 @@ public class RecipientUtil {
     }
 
      */
+    return true;
   }
 
   public static boolean isBlockable(@NonNull Recipient recipient) {
