@@ -347,6 +347,7 @@ public class ConversationActivity extends PassphraseRequiredActivity
   protected ComposeText                  composeText;
   private   AnimatingToggle              buttonToggle;
   private   SendButton                   sendButton;
+  private   BenchmarkButton              benchmarkButton;
   private   ImageButton                  attachButton;
   protected ConversationTitleView        titleView;
   private   TextView                     charactersLeft;
@@ -1960,6 +1961,8 @@ public class ConversationActivity extends PassphraseRequiredActivity
     titleView                = findViewById(R.id.conversation_title_view);
     buttonToggle             = findViewById(R.id.button_toggle);
     sendButton               = findViewById(R.id.send_button);
+    benchmarkButton          = findViewById(R.id.benchmark_button);
+
     attachButton             = findViewById(R.id.attach_button);
     composeText              = findViewById(R.id.embedded_text_editor);
     charactersLeft           = findViewById(R.id.space_left);
@@ -2004,6 +2007,11 @@ public class ConversationActivity extends PassphraseRequiredActivity
 
     SendButtonListener        sendButtonListener        = new SendButtonListener();
     ComposeKeyPressedListener composeKeyPressedListener = new ComposeKeyPressedListener();
+
+    BenchmarkButtonListener   benchmarkButtonListener   = new BenchmarkButtonListener();
+
+    benchmarkButton.setOnClickListener(benchmarkButtonListener);
+    benchmarkButton.setEnabled(true);
 
     composeText.setOnEditorActionListener(sendButtonListener);
     composeText.setCursorPositionChangedListener(this);
@@ -2736,6 +2744,48 @@ public class ConversationActivity extends PassphraseRequiredActivity
       inputPanel.releaseRecordingLock();
       return;
     }
+    try {
+      sendThatMessage(getMessage());
+    } catch (InvalidMessageException ex) {
+      Toast.makeText(ConversationActivity.this, R.string.ConversationActivity_message_is_empty_exclamation,
+              Toast.LENGTH_SHORT).show();
+      Log.w(TAG, ex);
+    }
+  }
+
+  public void sendMessageRandom() {
+    if(ApplicationDependencies.getIsBenchmarking()) {
+      ApplicationDependencies.setMessagesInTheConversation(ApplicationDependencies.getMessagesInTheConversation() + 1);
+      ApplicationDependencies.setBenchmarkMessageCurrent(ApplicationDependencies.getBenchmarkMessageCurrent() + 1);
+    }
+
+    int size = ApplicationDependencies.getBenchmarkMessageSize();
+    String size_str = valueOf(size);
+    String messageID = valueOf(ApplicationDependencies.getBenchmarkMessageCurrent());
+    String numberOfMessage = valueOf(ApplicationDependencies.getBenchmarkNumberOfMessage());
+    String header = size_str+":"+messageID+"/"+numberOfMessage+":";
+
+    if (header.length() > size) {
+      Toast.makeText(ConversationActivity.this, "Error, Cannot fit the parameters in a message of size "+size_str, Toast.LENGTH_SHORT).show();
+      ApplicationDependencies.setIsBenchmarking(false);
+      return;
+    } else {
+      String content = Util.generateRandomString(size - header.length());
+      header = header.concat(content);
+    }
+    sendMessage(header);
+    if(ApplicationDependencies.getBenchmarkMessageCurrent()>=ApplicationDependencies.getBenchmarkNumberOfMessage()){
+      ApplicationDependencies.setIsBenchmarking(false);
+      Toast.makeText(ConversationActivity.this, "Benchmark finished", Toast.LENGTH_SHORT).show();
+    }
+  }
+
+
+  private void sendMessage(String message){
+      sendThatMessage(message);
+  }
+
+  private void sendThatMessage(String message) {
 
     try {
       Recipient recipient = getRecipient();
@@ -2744,7 +2794,6 @@ public class ConversationActivity extends PassphraseRequiredActivity
         throw new RecipientFormattingException("Badly formatted");
       }
 
-      String          message        = getMessage();
       TransportOption transport      = sendButton.getSelectedTransport();
       boolean         forceSms       = (recipient.isForceSmsSelection() || sendButton.isManualSelection()) && transport.isSms();
       int             subscriptionId = sendButton.getSelectedTransport().getSimSubscriptionId().or(-1);
@@ -2768,7 +2817,13 @@ public class ConversationActivity extends PassphraseRequiredActivity
       } else if (isMediaMessage) {
         sendMediaMessage(forceSms, expiresIn, false, subscriptionId, initiating);
       } else {
-        sendTextMessage(forceSms, expiresIn, subscriptionId, initiating);
+        Trace.beginSection("ConversationActivity.SendTextMessage");
+        try {
+          sendTextMessage(forceSms, expiresIn, subscriptionId, initiating, message);
+
+        } finally {
+          Trace.endSection();
+        }
       }
     } catch (RecipientFormattingException ex) {
       Toast.makeText(ConversationActivity.this,
@@ -2897,7 +2952,7 @@ public class ConversationActivity extends PassphraseRequiredActivity
     return future;
   }
 
-  private void sendTextMessage(final boolean forceSms, final long expiresIn, final int subscriptionId, final boolean initiating)
+  private void sendTextMessage(final boolean forceSms, final long expiresIn, final int subscriptionId, final boolean initiating, String body)
       throws InvalidMessageException
   {
     if (!isDefaultSms && (!isSecureText || forceSms)) {
@@ -2907,7 +2962,7 @@ public class ConversationActivity extends PassphraseRequiredActivity
 
     final long    thread      = this.threadId;
     final Context context     = getApplicationContext();
-    final String  messageBody = getMessage();
+    final String  messageBody = body;
 
     OutgoingTextMessage message;
 
@@ -3221,6 +3276,52 @@ public class ConversationActivity extends PassphraseRequiredActivity
     @Override
     public void onClick(View v) {
       sendMessage();
+    }
+
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+      if (actionId == EditorInfo.IME_ACTION_SEND) {
+        sendButton.performClick();
+        return true;
+      }
+      return false;
+    }
+  }
+
+  private class BenchmarkButtonListener implements OnClickListener, TextView.OnEditorActionListener {
+    @Override
+    public void onClick(View v) {
+      Toast.makeText(ConversationActivity.this, "Starting the Benchmark Mode...",
+            Toast.LENGTH_SHORT).show();
+      ApplicationDependencies.setBenchmarkMessageCurrent(0);
+      String message = "";
+      try {
+        message = getMessage();
+      } catch (InvalidMessageException e) {
+        e.printStackTrace();
+      }
+      composeText.setText("");
+
+      String[] messageArray = message.split(" ");
+      if (messageArray.length != 2) {
+        Toast.makeText(ConversationActivity.this, "Parameters format must be : [message Size] [number of messages]",
+                Toast.LENGTH_SHORT).show();
+        return;
+      }
+      int messageSize = Integer.parseInt(messageArray[0]);
+      int numberOfMessage = Integer.parseInt(messageArray[1]);
+
+      if((messageSize<1)||(numberOfMessage<1)) {
+        Toast.makeText(ConversationActivity.this, "message Size and number of messages must be positive",
+                Toast.LENGTH_SHORT).show();
+        return;
+      }
+
+      int actualNumberOfMessage = fragment.conversationViewModel.getMessages().getValue().size();
+      ApplicationDependencies.setMessagesInTheConversation(actualNumberOfMessage);
+      ApplicationDependencies.initBenchmark(messageSize,numberOfMessage);
+      sendMessageRandom();
+
     }
 
     @Override
