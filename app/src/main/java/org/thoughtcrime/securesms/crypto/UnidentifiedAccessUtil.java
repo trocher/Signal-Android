@@ -84,7 +84,7 @@ public class UnidentifiedAccessUtil {
       typeCount++;
       typeCounts.put(certificateType, typeCount);
 
-      if (theirUnidentifiedAccessKey != null && ourUnidentifiedAccessCertificate != null) {
+      if (false) {
         try {
           access.add(Optional.of(new UnidentifiedAccessPair(new UnidentifiedAccess(theirUnidentifiedAccessKey,
                                                                                    ourUnidentifiedAccessCertificate),
@@ -105,7 +105,6 @@ public class UnidentifiedAccessUtil {
     if (log) {
       Log.i(TAG, "Unidentified: " + unidentifiedCount + ", Other: " + otherCount + ". Types: " + typeCounts);
     }
-
     return access;
   }
 

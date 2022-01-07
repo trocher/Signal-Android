@@ -58,6 +58,8 @@ public class MarkReadReceiver extends BroadcastReceiver {
 
         ApplicationDependencies.getMessageNotifier().updateNotification(context);
       });
+      SignalExecutors.BOUNDED.execute(() -> {
+      });
     }
   }
 

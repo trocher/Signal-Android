@@ -1,9 +1,11 @@
 package org.thoughtcrime.securesms.jobs;
 
 import androidx.annotation.NonNull;
+import androidx.tracing.Trace;
 
 import org.signal.core.util.logging.Log;
 import org.thoughtcrime.securesms.ApplicationContext;
+import org.thoughtcrime.securesms.bench.SignalServiceMessageSenderH;
 import org.thoughtcrime.securesms.crypto.UnidentifiedAccessUtil;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
 import org.thoughtcrime.securesms.database.MessageDatabase;
@@ -14,13 +16,11 @@ import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
 import org.thoughtcrime.securesms.dependencies.ApplicationDependencies;
 import org.thoughtcrime.securesms.jobmanager.Data;
 import org.thoughtcrime.securesms.jobmanager.Job;
-import org.thoughtcrime.securesms.jobmanager.impl.BackoffUtil;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientId;
 import org.thoughtcrime.securesms.recipients.RecipientUtil;
 import org.thoughtcrime.securesms.service.ExpiringMessageManager;
 import org.thoughtcrime.securesms.transport.InsecureFallbackApprovalException;
-import org.thoughtcrime.securesms.transport.RetryLaterException;
 import org.thoughtcrime.securesms.transport.UndeliverableMessageException;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
@@ -31,12 +31,10 @@ import org.whispersystems.signalservice.api.crypto.UntrustedIdentityException;
 import org.whispersystems.signalservice.api.messages.SignalServiceDataMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSyncMessage;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
-import org.whispersystems.signalservice.api.push.exceptions.NonSuccessfulResponseCodeException;
 import org.whispersystems.signalservice.api.push.exceptions.ServerRejectedException;
 import org.whispersystems.signalservice.api.push.exceptions.UnregisteredUserException;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 public class PushTextSendJob extends PushSendJob {
 
@@ -74,12 +72,14 @@ public class PushTextSendJob extends PushSendJob {
 
   @Override
   public void onPushSend() throws IOException, NoSuchMessageException, UndeliverableMessageException {
+    Trace.beginSection("PushTextSendJob : onPushSend");
     ExpiringMessageManager expirationManager = ApplicationContext.getInstance(context).getExpiringMessageManager();
     MessageDatabase        database          = DatabaseFactory.getSmsDatabase(context);
     SmsMessageRecord       record            = database.getSmsMessage(messageId);
 
     if (!record.isPending() && !record.isFailed()) {
       warn(TAG, String.valueOf(record.getDateSent()), "Message " + messageId + " was already sent. Ignoring.");
+      Trace.endSection();
       return;
     }
 
@@ -120,12 +120,14 @@ public class PushTextSendJob extends PushSendJob {
       }
 
       log(TAG, String.valueOf(record.getDateSent()), "Sent message: " + messageId);
+      Trace.endSection();
 
     } catch (InsecureFallbackApprovalException e) {
       warn(TAG, String.valueOf(record.getDateSent()), "Failure", e);
       database.markAsPendingInsecureSmsFallback(record.getId());
       ApplicationDependencies.getMessageNotifier().notifyMessageDeliveryFailed(context, record.getRecipient(), record.getThreadId());
       ApplicationDependencies.getJobManager().add(new DirectoryRefreshJob(false));
+      Trace.endSection();
     } catch (UntrustedIdentityException e) {
       warn(TAG, String.valueOf(record.getDateSent()), "Failure", e);
       RecipientId recipientId = Recipient.external(context, e.getIdentifier()).getId();
@@ -133,6 +135,7 @@ public class PushTextSendJob extends PushSendJob {
       database.markAsSentFailed(record.getId());
       database.markAsPush(record.getId());
       RetrieveProfileJob.enqueue(recipientId);
+      Trace.endSection();
     }
   }
 
@@ -151,11 +154,13 @@ public class PushTextSendJob extends PushSendJob {
   private boolean deliver(SmsMessageRecord message)
       throws UntrustedIdentityException, InsecureFallbackApprovalException, UndeliverableMessageException, IOException
   {
+    Trace.beginSection("PushTextSendJob : deliver");
     try {
       rotateSenderCertificateIfNecessary();
 
       Recipient                        messageRecipient   = message.getIndividualRecipient().fresh();
       SignalServiceMessageSender       messageSender      = ApplicationDependencies.getSignalServiceMessageSender();
+      SignalServiceMessageSenderH      messageSenderH     = new SignalServiceMessageSenderH(messageSender);
       SignalServiceAddress             address            = RecipientUtil.toSignalServiceAddress(context, messageRecipient);
       Optional<byte[]>                 profileKey         = getProfileKey(messageRecipient);
       Optional<UnidentifiedAccessPair> unidentifiedAccess = UnidentifiedAccessUtil.getAccessFor(context, messageRecipient);
@@ -173,16 +178,21 @@ public class PushTextSendJob extends PushSendJob {
       if (Util.equals(TextSecurePreferences.getLocalUuid(context), address.getUuid().orNull())) {
         Optional<UnidentifiedAccessPair> syncAccess  = UnidentifiedAccessUtil.getAccessForSync(context);
         SignalServiceSyncMessage         syncMessage = buildSelfSendSyncMessage(context, textSecureMessage, syncAccess);
-
-        messageSender.sendMessage(syncMessage, syncAccess);
+        //entry point of libsignal
+        messageSenderH.sendMessage(syncMessage, syncAccess);
+        Trace.endSection();
         return syncAccess.isPresent();
       } else {
-        return messageSender.sendMessage(address, unidentifiedAccess, textSecureMessage).getSuccess().isUnidentified();
+        boolean x =  messageSenderH.sendMessage(address, unidentifiedAccess, textSecureMessage).getSuccess().isUnidentified();
+        Trace.endSection();
+        return x;
       }
     } catch (UnregisteredUserException e) {
       warn(TAG, "Failure", e);
+      Trace.endSection();
       throw new InsecureFallbackApprovalException(e);
     } catch (ServerRejectedException e) {
+      Trace.endSection();
       throw new UndeliverableMessageException(e);
     }
   }

@@ -86,6 +86,8 @@ android {
     }
 
     signingConfigs {
+        release {
+        }
         if (keystores.debug != null) {
             debug {
                 storeFile file("${project.rootDir}/${keystores.debug.storeFile}")
@@ -141,7 +143,7 @@ android {
 
         splits {
             abi {
-                enable true
+                enable false
                 reset()
                 include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
                 universalApk true
@@ -149,6 +151,7 @@ android {
         }
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.release
     }
 
     compileOptions {
@@ -207,6 +210,7 @@ android {
         release {
             minifyEnabled true
             proguardFiles = buildTypes.debug.proguardFiles
+            signingConfig signingConfigs.debug
         }
         perf {
             initWith debug
@@ -229,6 +233,7 @@ android {
             ext.websiteUpdateUrl = "null"
             buildConfigField "boolean", "PLAY_STORE_DISABLED", "false"
             buildConfigField "String", "NOPLAY_UPDATE_URL", "$ext.websiteUpdateUrl"
+            signingConfig signingConfigs.debug
         }
 
         website {
@@ -260,6 +265,7 @@ android {
             isDefault true
 
             buildConfigField "String", "MOBILE_COIN_ENVIRONMENT", "\"mainnet\""
+            signingConfig signingConfigs.debug
         }
 
         staging {
@@ -322,6 +328,8 @@ android {
 }
 
 dependencies {
+    //noinspection GradleDependency
+
     lintChecks project(':lintchecks')
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
@@ -331,6 +339,7 @@ dependencies {
             strictly '1.2.0'
         }
     }
+    api 'androidx.tracing:tracing:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'androidx.legacy:legacy-support-v13:1.0.0'
@@ -377,7 +386,11 @@ dependencies {
     implementation project(':device-transfer')
 
     implementation 'org.signal:zkgroup-android:0.7.0'
-    implementation 'org.whispersystems:signal-client-android:0.1.7'
+
+    //implementation 'org.whispersystems:signal-client-android:0.1.7'
+    implementation files("libs/normal/signal-client-android-release.aar")
+    //implementation files("libs/aes128/signal-client-android-release.aar")
+
     implementation 'com.google.protobuf:protobuf-javalite:3.10.0'
 
     implementation('com.mobilecoin:android-sdk:1.0.0') {

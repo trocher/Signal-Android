@@ -79,6 +79,13 @@ public class ApplicationDependencies {
   private static volatile ShakeToReport                shakeToReport;
   private static volatile SignalCallManager            signalCallManager;
 
+  private static volatile boolean                      isBenchmarking;
+  private static volatile boolean                      receiverNeedToInit;
+  private static volatile int                          benchmarkMessageSize;
+  private static volatile int                          benchmarkNumberOfMessage;
+  private static volatile int                          messagesInTheConversation=0;
+  private static volatile int                          benchmarkMessageCurrent=0;
+
   @MainThread
   public static void init(@NonNull Application application, @NonNull Provider provider) {
     synchronized (LOCK) {
@@ -92,11 +99,66 @@ public class ApplicationDependencies {
       ApplicationDependencies.appForegroundObserver = provider.provideAppForegroundObserver();
 
       ApplicationDependencies.appForegroundObserver.begin();
+
+      ApplicationDependencies.benchmarkMessageSize = 10;
+      ApplicationDependencies.isBenchmarking = false;
+      ApplicationDependencies.receiverNeedToInit = false;
+      ApplicationDependencies.benchmarkNumberOfMessage=0;
     }
   }
 
   public static @NonNull Application getApplication() {
     return application;
+  }
+
+  public static @NonNull void  initBenchmark(int size, int nbMessage) {
+    ApplicationDependencies.setBenchmarkMessageCurrent(0);
+    ApplicationDependencies.setBenchmarkMessageSize(size);
+    ApplicationDependencies.setBenchmarkNumberOfMessage(nbMessage);
+    ApplicationDependencies.setIsBenchmarking(true);
+  }
+
+
+  public static @NonNull int getMessagesInTheConversation() {
+    return messagesInTheConversation;
+  }
+  public static @NonNull void setMessagesInTheConversation(int that) {
+    messagesInTheConversation = that;
+  }
+
+  public static @NonNull int getBenchmarkMessageSize() {
+    return benchmarkMessageSize;
+  }
+  public static @NonNull void setBenchmarkMessageSize(int i) {
+    benchmarkMessageSize = i;
+  }
+
+  public static @NonNull boolean getReceiverNeedToInit() {
+    return receiverNeedToInit;
+  }
+  public static @NonNull void setReceiverNeedToInit(boolean i) {
+    receiverNeedToInit = i;
+  }
+
+  public static @NonNull int  getBenchmarkMessageCurrent() {
+    return benchmarkMessageCurrent;
+  }
+  public static @NonNull void setBenchmarkMessageCurrent(int i) {
+    benchmarkMessageCurrent = i;
+  }
+
+  public static @NonNull int  getBenchmarkNumberOfMessage() {
+    return benchmarkNumberOfMessage;
+  }
+  public static @NonNull void setBenchmarkNumberOfMessage(int i) {
+    benchmarkNumberOfMessage = i;
+  }
+
+  public static @NonNull boolean  getIsBenchmarking() {
+    return isBenchmarking;
+  }
+  public static @NonNull void setIsBenchmarking(boolean i) {
+    isBenchmarking = i;
   }
 
   public static @NonNull PipeConnectivityListener getPipeListener() {

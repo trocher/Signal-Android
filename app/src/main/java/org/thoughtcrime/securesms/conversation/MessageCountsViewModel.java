@@ -1,5 +1,6 @@
 package org.thoughtcrime.securesms.conversation;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.database.ContentObserver;
@@ -42,6 +43,7 @@ public class MessageCountsViewModel extends ViewModel {
       }
 
       observer = new ContentObserver(null) {
+        @SuppressLint("LogTagInlined")
         @Override
         public void onChange(boolean selfChange) {
           EXECUTOR.execute(() -> {

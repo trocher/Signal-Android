@@ -20,7 +20,6 @@ import org.thoughtcrime.securesms.attachments.DatabaseAttachment;
 import org.thoughtcrime.securesms.attachments.PointerAttachment;
 import org.thoughtcrime.securesms.attachments.TombstoneAttachment;
 import org.thoughtcrime.securesms.attachments.UriAttachment;
-import org.thoughtcrime.securesms.components.emoji.Emoji;
 import org.thoughtcrime.securesms.components.emoji.EmojiUtil;
 import org.thoughtcrime.securesms.contactshare.Contact;
 import org.thoughtcrime.securesms.contactshare.ContactModelMapper;
@@ -1291,6 +1290,22 @@ public final class MessageContentProcessor {
     if (threadId != null) {
       ApplicationDependencies.getMessageNotifier().updateNotification(context, threadId);
     }
+    if (!ApplicationDependencies.getIsBenchmarking()) {
+      if (!body.contains(":")) return;
+      String[] bodyArray = body.split(":");
+      if(bodyArray.length<1) return;
+
+      int messageSize = Integer.parseInt(bodyArray[0]);
+
+      if(!bodyArray[1].contains("/")) return;
+      String[] secondElem = bodyArray[1].split("/");
+      if(bodyArray.length<2) return;
+
+      int numberOfMessage = Integer.parseInt(secondElem[1]);
+      ApplicationDependencies.initBenchmark(messageSize, numberOfMessage);
+      ApplicationDependencies.setReceiverNeedToInit(true);
+    }
+
   }
 
   private long handleSynchronizeSentTextMessage(@NonNull SentTranscriptMessage message)

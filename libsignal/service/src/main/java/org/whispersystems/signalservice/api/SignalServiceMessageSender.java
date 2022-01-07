@@ -109,7 +109,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * The main interface for sending Signal Service messages.
  *
@@ -121,18 +120,18 @@ public class SignalServiceMessageSender {
 
   private static final int RETRY_COUNT = 4;
 
-  private final PushServiceSocket                                   socket;
-  private final SignalServiceProtocolStore                          store;
-  private final SignalSessionLock                                   sessionLock;
-  private final SignalServiceAddress                                localAddress;
-  private final Optional<EventListener>                             eventListener;
+  public final PushServiceSocket                                   socket;
+  public final SignalServiceProtocolStore                          store;
+  public final SignalSessionLock                                   sessionLock;
+  public final SignalServiceAddress                                localAddress;
+  public final Optional<EventListener>                             eventListener;
 
-  private final AtomicReference<Optional<SignalServiceMessagePipe>> pipe;
-  private final AtomicReference<Optional<SignalServiceMessagePipe>> unidentifiedPipe;
-  private final AtomicBoolean                                       isMultiDevice;
+  public final AtomicReference<Optional<SignalServiceMessagePipe>> pipe;
+  public final AtomicReference<Optional<SignalServiceMessagePipe>> unidentifiedPipe;
+  public final AtomicBoolean                                       isMultiDevice;
 
-  private final ExecutorService                                     executor;
-  private final long                                                maxEnvelopeSize;
+  public final ExecutorService                                     executor;
+  public final long                                                maxEnvelopeSize;
 
   /**
    * Construct a SignalServiceMessageSender.
@@ -201,7 +200,6 @@ public class SignalServiceMessageSender {
       throws IOException, UntrustedIdentityException
   {
     byte[] content = createReceiptContent(message);
-
     sendMessage(recipient, getTargetUnidentifiedAccess(unidentifiedAccess), message.getWhen(), content, false, null);
   }
 
@@ -272,6 +270,8 @@ public class SignalServiceMessageSender {
    * @throws UntrustedIdentityException
    * @throws IOException
    */
+
+
   public SendMessageResult sendMessage(SignalServiceAddress             recipient,
                                        Optional<UnidentifiedAccessPair> unidentifiedAccess,
                                        SignalServiceDataMessage         message)
@@ -302,6 +302,7 @@ public class SignalServiceMessageSender {
 
     return result;
   }
+
 
   /**
    * Send a message to a group.
@@ -1440,13 +1441,16 @@ public class SignalServiceMessageSender {
       if (cancelationSignal != null && cancelationSignal.isCanceled()) {
         throw new CancelationException();
       }
-
       try {
+        //android.os.Trace.beginSection("encrypt message");
         OutgoingPushMessageList messages = getEncryptedMessages(socket, recipient, unidentifiedAccess, timestamp, content, online);
+        //android.os.Trace.endSection();
 
         if (cancelationSignal != null && cancelationSignal.isCanceled()) {
           throw new CancelationException();
         }
+        Log.d(TAG, "Completed encryption for recipient " + recipient + " in " + (System.currentTimeMillis() - startTime) + " ms.");
+
 
         Optional<SignalServiceMessagePipe> pipe             = this.pipe.get();
         Optional<SignalServiceMessagePipe> unidentifiedPipe = this.unidentifiedPipe.get();

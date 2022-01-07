@@ -191,7 +191,7 @@ public class ConversationFragment extends LoggingFragment {
   private ConversationBannerView      emptyConversationBanner;
   private MessageRequestViewModel     messageRequestViewModel;
   private MessageCountsViewModel      messageCountsViewModel;
-  private ConversationViewModel       conversationViewModel;
+  public  ConversationViewModel       conversationViewModel;
   private SnapToTopDataObserver       snapToTopDataObserver;
   private MarkReadHelper              markReadHelper;
   private Animation                   scrollButtonInAnimation;
@@ -215,7 +215,6 @@ public class ConversationFragment extends LoggingFragment {
     CachedInflater.from(context).cacheUntilLimit(R.layout.conversation_item_update, parent, 5);
     CachedInflater.from(context).cacheUntilLimit(R.layout.cursor_adapter_header_footer_view, parent, 2);
   }
-
   @Override
   public void onCreate(Bundle icicle) {
     super.onCreate(icicle);
@@ -293,7 +292,6 @@ public class ConversationFragment extends LoggingFragment {
     scrollToMentionButton.setOnClickListener(v -> scrollToNextMention());
 
     updateToolbarDependentMargins();
-
     return view;
   }
 
@@ -1149,6 +1147,36 @@ public class ConversationFragment extends LoggingFragment {
       return;
     }
 
+    if (ApplicationDependencies.getIsBenchmarking()){
+      if (ApplicationDependencies.getReceiverNeedToInit()){
+        ApplicationDependencies.setMessagesInTheConversation(conversationViewModel.getMessages().getValue().size()-1);
+        ApplicationDependencies.setReceiverNeedToInit(false);
+      }
+
+        Log.d(TAG, "Bench " + conversationViewModel.getMessages().getValue().size() + " messages and " + ApplicationDependencies.getMessagesInTheConversation());
+
+      int current = conversationViewModel.getMessages().getValue().size();
+
+      if (current > ApplicationDependencies.getMessagesInTheConversation()) {
+        // A message has been received, send a new message
+        ApplicationDependencies.setMessagesInTheConversation(current);
+        ApplicationDependencies.setBenchmarkMessageCurrent(ApplicationDependencies.getBenchmarkMessageCurrent()+1);
+
+        if(ApplicationDependencies.getBenchmarkMessageCurrent()>=ApplicationDependencies.getBenchmarkNumberOfMessage()){
+          ApplicationDependencies.setIsBenchmarking(false);
+          Toast.makeText(getContext(), "Benchmark finished",
+                  Toast.LENGTH_SHORT).show();
+          return;
+        }
+        Activity act = getActivity();
+        if (act instanceof ConversationActivity) {
+          Log.d(TAG, "sending a message ourself");
+          ((ConversationActivity) act).sendMessageRandom();
+        }
+      }
+    }
+
+
     int position = getListLayoutManager().findFirstVisibleItemPosition();
     if (position == getListAdapter().getItemCount() - 1) {
       return;
@@ -1211,9 +1239,9 @@ public class ConversationFragment extends LoggingFragment {
 
     @Override
     public void onScrolled(@NonNull final RecyclerView rv, final int dx, final int dy) {
-      boolean currentlyAtBottom           = !rv.canScrollVertically(1);
+      boolean currentlyAtBottom = !rv.canScrollVertically(1);
       boolean currentlyAtZoomScrollHeight = isAtZoomScrollHeight();
-      int     positionId                  = getHeaderPositionId();
+      int positionId = getHeaderPositionId();
 
       if (currentlyAtBottom && !wasAtBottom) {
         ViewUtil.fadeOut(composeDivider, 50, View.INVISIBLE);
@@ -1231,12 +1259,12 @@ public class ConversationFragment extends LoggingFragment {
         bindScrollHeader(conversationDateHeader, positionId);
       }
 
-      wasAtBottom    = currentlyAtBottom;
+      wasAtBottom = currentlyAtBottom;
       lastPositionId = positionId;
 
       postMarkAsReadRequest();
-    }
 
+    }
     @Override
     public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
       if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {

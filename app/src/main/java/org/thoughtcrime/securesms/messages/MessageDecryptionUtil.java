@@ -1,6 +1,7 @@
 package org.thoughtcrime.securesms.messages;
 
 import android.content.Context;
+import android.os.Trace;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,6 +22,7 @@ import org.signal.libsignal.metadata.SelfSendException;
 import org.thoughtcrime.securesms.crypto.DatabaseSessionLock;
 import org.thoughtcrime.securesms.crypto.UnidentifiedAccessUtil;
 import org.thoughtcrime.securesms.crypto.storage.SignalProtocolStoreImpl;
+import org.thoughtcrime.securesms.dependencies.ApplicationDependencies;
 import org.thoughtcrime.securesms.groups.BadGroupIdException;
 import org.thoughtcrime.securesms.groups.GroupId;
 import org.thoughtcrime.securesms.jobmanager.Job;
@@ -39,7 +41,6 @@ import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 import org.whispersystems.signalservice.internal.push.UnsupportedDataMessageException;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -72,7 +73,11 @@ public final class MessageDecryptionUtil {
 
     try {
       try {
-        return DecryptionResult.forSuccess(cipher.decrypt(envelope), jobs);
+        Trace.beginSection("MessageDecryptionUtil : decrypt "+ ApplicationDependencies.getBenchmarkMessageSize());
+        SignalServiceContent x = cipher.decrypt(envelope);
+        Trace.endSection();
+        return DecryptionResult.forSuccess(x, jobs);
+
       } catch (ProtocolInvalidVersionException e) {
         Log.w(TAG, String.valueOf(envelope.getTimestamp()), e);
         return DecryptionResult.forError(MessageState.INVALID_VERSION, toExceptionMetadata(e), jobs);

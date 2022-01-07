@@ -48,7 +48,6 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import org.signal.core.util.logging.Log;
 import org.thoughtcrime.securesms.BuildConfig;
 import org.thoughtcrime.securesms.components.ComposeText;
-import org.thoughtcrime.securesms.keyvalue.SignalStore;
 import org.thoughtcrime.securesms.mms.OutgoingLegacyMmsConnection;
 import org.whispersystems.libsignal.util.guava.Optional;
 
@@ -63,6 +62,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class Util {
@@ -518,5 +518,39 @@ public class Util {
     primary.setStackTrace(combined);
 
     return primary;
+  }
+
+  public static String generateRandomString(int length) {
+
+    // create a string of uppercase and lowercase characters and numbers
+    String upperAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    String lowerAlphabet = "abcdefghijklmnopqrstuvwxyz";
+    String numbers = "0123456789";
+
+    // combine all strings
+    String alphaNumeric = upperAlphabet + lowerAlphabet + numbers;
+
+    // create random string builder
+    StringBuilder sb = new StringBuilder();
+
+    // create an object of Random class
+    Random random = new Random();
+
+    // specify length of random string
+    for(int i = 0; i < length; i++) {
+
+      // generate random index number
+      int index = random.nextInt(alphaNumeric.length());
+
+      // get character specified by index
+      // from the string
+      char randomChar = alphaNumeric.charAt(index);
+
+      // append the character to string builder
+      sb.append(randomChar);
+    }
+
+    String randomString = sb.toString();
+    return randomString;
   }
 }

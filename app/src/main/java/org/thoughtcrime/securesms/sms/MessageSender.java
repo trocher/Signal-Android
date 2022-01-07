@@ -23,6 +23,7 @@ import android.os.Parcelable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.tracing.Trace;
 
 import com.annimon.stream.Stream;
 
@@ -106,9 +107,14 @@ public class MessageSender {
     boolean         keyExchange = message.isKeyExchange();
 
     long allocatedThreadId = DatabaseFactory.getThreadDatabase(context).getOrCreateValidThreadId(recipient, threadId);
+    // Put the message inside the DB and pass the id to sendTextMessage
     long messageId         = database.insertMessageOutbox(allocatedThreadId, message, forceSms, System.currentTimeMillis(), insertListener);
-
-    sendTextMessage(context, recipient, forceSms, keyExchange, messageId);
+    Trace.beginSection("MessageSender.SendTextMessage");
+    try {
+      sendTextMessage(context, recipient, forceSms, keyExchange, messageId);
+    } finally {
+      Trace.endSection();
+    }
     onMessageSent();
 
     return allocatedThreadId;
@@ -383,7 +389,12 @@ public class MessageSender {
 
   private static void sendTextPush(Recipient recipient, long messageId) {
     JobManager jobManager = ApplicationDependencies.getJobManager();
-    jobManager.add(new PushTextSendJob(messageId, recipient));
+    Trace.beginSection("MessageSender : Adding the PushTextSendJob");
+    try {
+      jobManager.add(new PushTextSendJob(messageId, recipient));
+    } finally {
+      Trace.endSection();
+    }
   }
 
   private static void sendMediaPush(Context context, Recipient recipient, long messageId, @NonNull Collection<String> uploadJobIds) {

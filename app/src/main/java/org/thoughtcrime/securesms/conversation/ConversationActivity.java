@@ -16,6 +16,10 @@
  */
 package org.thoughtcrime.securesms.conversation;
 
+import static org.thoughtcrime.securesms.TransportOption.Type;
+import static org.thoughtcrime.securesms.database.GroupDatabase.GroupRecord;
+import static java.lang.String.valueOf;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -77,6 +81,7 @@ import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.tracing.Trace;
 
 import com.annimon.stream.Collectors;
 import com.annimon.stream.Stream;
@@ -106,6 +111,7 @@ import org.thoughtcrime.securesms.attachments.Attachment;
 import org.thoughtcrime.securesms.attachments.TombstoneAttachment;
 import org.thoughtcrime.securesms.audio.AudioRecorder;
 import org.thoughtcrime.securesms.components.AnimatingToggle;
+import org.thoughtcrime.securesms.components.BenchmarkButton;
 import org.thoughtcrime.securesms.components.ComposeText;
 import org.thoughtcrime.securesms.components.ConversationSearchBottomBar;
 import org.thoughtcrime.securesms.components.HidingLinearLayout;
@@ -296,9 +302,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.thoughtcrime.securesms.TransportOption.Type;
-import static org.thoughtcrime.securesms.database.GroupDatabase.GroupRecord;
 
 /**
  * Activity for displaying a message thread, as well as
@@ -2809,7 +2812,6 @@ public class ConversationActivity extends PassphraseRequiredActivity
                                        needsSplit;
 
       Log.i(TAG, "[sendMessage] recipient: " + recipient.getId() + ", threadId: " + threadId + ",  forceSms: " + forceSms + ", isManual: " + sendButton.isManualSelection());
-
       if ((recipient.isMmsGroup() || recipient.getEmail().isPresent()) && !isMmsEnabled) {
         handleManualMmsRequired();
       } else if (!forceSms && (identityRecords.isUnverified(true) || identityRecords.isUntrusted(true))) {
