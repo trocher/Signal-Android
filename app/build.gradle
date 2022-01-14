@@ -388,7 +388,9 @@ dependencies {
     implementation 'org.signal:zkgroup-android:0.7.0'
 
     //implementation 'org.whispersystems:signal-client-android:0.1.7'
-    implementation files("libs/normal/signal-client-android-release.aar")
+    implementation files("libs/singleRatchet/signal-client-android-release.aar")
+    //implementation files("libs/normal/signal-client-android-release.aar")
+
     //implementation files("libs/aes128/signal-client-android-release.aar")
 
     implementation 'com.google.protobuf:protobuf-javalite:3.10.0'

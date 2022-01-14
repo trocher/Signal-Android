@@ -21,7 +21,9 @@ dependencies {
     api 'com.googlecode.libphonenumber:libphonenumber:8.12.17'
     api 'com.fasterxml.jackson.core:jackson-databind:2.9.9.2'
 
-    api files("libs/normal/signal-client-java-0.1.7.jar")
+    //api files("libs/normal/signal-client-java-0.1.7.jar")
+    api files("libs/singleRatchet/signal-client-java-0.1.7.jar")
+
     //api files("libs/time/signal-client-java-0.1.7.jar")
     //api files("libs/aes128/signal-client-java-0.1.7.jar")
 

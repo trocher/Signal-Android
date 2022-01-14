@@ -1300,6 +1300,7 @@ public final class MessageContentProcessor {
       if(!bodyArray[1].contains("/")) return;
       String[] secondElem = bodyArray[1].split("/");
       if(bodyArray.length<2) return;
+      if (Integer.parseInt(secondElem[0]) != 1) return;
 
       int numberOfMessage = Integer.parseInt(secondElem[1]);
       ApplicationDependencies.initBenchmark(messageSize, numberOfMessage);
